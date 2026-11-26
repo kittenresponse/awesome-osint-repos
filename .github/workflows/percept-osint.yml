@@ -1,0 +1,23 @@
+name: Percept OSINT catalogue validation
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '30 3 * * *'
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Validate public upstream catalogue
+        run: |
+          python3 - <<'PY'
+          import urllib.request, csv, io
+          url = 'https://raw.githubusercontent.com/osintshifu/awesome-osint-repos/main/osint-repositories.csv'
+          with urllib.request.urlopen(url, timeout=30) as response:
+              data = response.read(10000000).decode('utf-8-sig')
+          rows = list(csv.DictReader(io.StringIO(data)))
+          assert rows, 'Empty catalogue'
+          print('Catalogue records:', len(rows))
+          PY
